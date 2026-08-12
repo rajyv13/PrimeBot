@@ -3,8 +3,11 @@
  *
  * A standalone web app that lets Discord server admins log in with Discord
  * OAuth2 and configure PrimeBot for the servers they manage. It reads and
- * writes the same PostgreSQL tables the bot uses, so changes take effect
- * immediately (the bot reads settings on each command/event).
+ * writes the same PostgreSQL tables the bot uses. The bot caches settings in
+ * memory and re-reads the tables on a ~30s interval (see
+ * SETTINGS_RELOAD_INTERVAL_MS), so dashboard saves take effect within that
+ * window without a bot restart — provided the bot and dashboard point at the
+ * same DATABASE_URL / WELCOME_DATABASE_URL.
  *
  * Run with:  npm run dashboard
  * Env vars:  PORT, DISCORD_TOKEN, DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET,

@@ -40,6 +40,22 @@ class WelcomeSettingsManager {
         await this._ensureTable();
         await this._migrateFromServerSettingsJson();
         await this._loadAll();
+        this._startReloadInterval();
+    }
+
+    /**
+     * The dashboard writes welcome settings directly to the DB (a separate
+     * process from the bot). Re-read the table periodically so dashboard saves
+     * take effect without a bot restart (default 30s).
+     */
+    _startReloadInterval() {
+        const ms = parseInt(process.env.SETTINGS_RELOAD_INTERVAL_MS, 10) || 30000;
+        this._reloadTimer = setInterval(() => {
+            this._loadAll().catch(err =>
+                console.error('[WELCOME SETTINGS] Background reload failed:', err.message)
+            );
+        }, ms);
+        this._reloadTimer.unref?.();
     }
 
     /**

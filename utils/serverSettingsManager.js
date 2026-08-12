@@ -60,6 +60,23 @@ class ServerSettingsManager {
         await this._ensureTable();
         await this._migrateFromJson();
         await this.loadSettings();
+        this._startReloadInterval();
+    }
+
+    /**
+     * The dashboard writes settings directly to the DB (a separate process from
+     * the bot). The bot only learns about those writes by re-reading the table;
+     * without this, dashboard saves appear to "succeed but do nothing" until the
+     * bot is restarted. Reload on a configurable interval (default 30s).
+     */
+    _startReloadInterval() {
+        const ms = parseInt(process.env.SETTINGS_RELOAD_INTERVAL_MS, 10) || 30000;
+        this._reloadTimer = setInterval(() => {
+            this.loadSettings().catch(err =>
+                console.error('[SERVER SETTINGS] Background reload failed:', err.message)
+            );
+        }, ms);
+        this._reloadTimer.unref?.();
     }
 
     /** One-time import of existing serverSettings.json data (non-welcome fields only).
@@ -217,7 +234,17 @@ class ServerSettingsManager {
             await this._ensureTable();
             const res = await pool.query('SELECT * FROM server_settings');
             for (const row of res.rows) {
-                this.serverSettings.set(row.guild_id, this._rowToSettings(row));
+                const fresh = this._rowToSettings(row);
+                // Preserve in-memory-only fields not represented in the DB.
+                // (e.g. leveling.roleRewards, which the leveling manager keeps in
+                // memory and is not part of the server_settings schema.) A plain
+                // full replace here would wipe them every reload interval.
+                const existing = this.serverSettings.get(row.guild_id);
+                if (existing?.leveling?.roleRewards) {
+                    fresh.leveling = fresh.leveling || {};
+                    fresh.leveling.roleRewards = existing.leveling.roleRewards;
+                }
+                this.serverSettings.set(row.guild_id, fresh);
             }
             console.log(`[SERVER SETTINGS] Loaded settings for ${this.serverSettings.size} servers.`);
         } catch (error) {

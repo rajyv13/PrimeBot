@@ -116,7 +116,7 @@ async function requireGuildAdminPage(req, res, next) {
     try {
         const guildId = req.params.guildId;
         if (!/^\d{17,20}$/.test(guildId)) {
-            return res.status(404).type('html').send(pages.notFoundPage());
+            return res.status(404).type('html').send(pages.notFoundPage({ user: req.session && req.session.user }));
         }
 
         const accessToken = req.session && req.session.accessToken;

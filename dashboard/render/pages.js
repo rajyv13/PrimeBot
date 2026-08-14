@@ -78,7 +78,7 @@ function loginPage({ errorKey } = {}) {
 
 // ── Docs ───────────────────────────────────────────────────────────────────
 
-function docsPage({ clientId } = {}) {
+function docsPage({ clientId, user } = {}) {
     const inviteUrl = clientId
         ? `https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=8&integration_type=0&scope=bot%20applications.commands`
         : 'https://discord.com/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=8&integration_type=0&scope=bot%20applications.commands';
@@ -199,12 +199,12 @@ function docsPage({ clientId } = {}) {
         <p><strong>Can't see your server?</strong> Ensure you have <em>Manage Server</em> permission and that PrimeBot has been added to it.</p>
       </section>
     </div>`;
-    return render({ title: 'PrimeBot Documentation', body, active: 'docs' });
+    return render({ title: 'PrimeBot Documentation', body, active: 'docs', user });
 }
 
 // ── Live ────────────────────────────────────────────────────────────────────
 
-function livePage() {
+function livePage({ user } = {}) {
     const body = `
     <div class="page-head">
       <h1>Live</h1>
@@ -214,7 +214,7 @@ function livePage() {
       <div class="splash"><div class="spinner"></div><p>Loading live data…</p></div>
     </div>
     <div id="live-join-modal" class="modal-overlay hidden"></div>`;
-    return render({ title: 'PrimeBot · Live', body, active: 'live', scripts: ['/js/live.js'] });
+    return render({ title: 'PrimeBot · Live', body, active: 'live', scripts: ['/js/live.js'], user });
 }
 
 // ── Overview (servers) ──────────────────────────────────────────────────────
@@ -245,7 +245,7 @@ function guildCardHTML(g, present) {
     </div>`;
 }
 
-function overviewPage({ guilds = [], clientId } = {}) {
+function overviewPage({ guilds = [], clientId, user } = {}) {
     const manageable = guilds.filter(g => g.botPresent);
     const absent = guilds.filter(g => !g.botPresent);
 
@@ -284,19 +284,19 @@ function overviewPage({ guilds = [], clientId } = {}) {
     </div>
     ${statsHTML}
     ${listHTML}`;
-    return render({ title: 'PrimeBot · Servers', body, active: 'servers', scripts: ['/js/servers.js'] });
+    return render({ title: 'PrimeBot · Servers', body, active: 'servers', scripts: ['/js/servers.js'], user });
 }
 
 // ── 404 ────────────────────────────────────────────────────────────────────
 
-function notFoundPage() {
+function notFoundPage({ user } = {}) {
     const body = `
     <div class="card">
       <h2>Page not found</h2>
       <p>The page you requested does not exist.</p>
       <p><a href="/">← Back to dashboard</a></p>
     </div>`;
-    return render({ title: 'PrimeBot · Not found', body });
+    return render({ title: 'PrimeBot · Not found', body, user });
 }
 
 module.exports = { loginPage, docsPage, livePage, overviewPage, notFoundPage, guildCardHTML };

@@ -103,6 +103,7 @@ a:hover { text-decoration: underline; }
   border-radius: 50%;
   background: var(--bg-card);
   border: 1px solid var(--border);
+  object-fit: cover;
 }
 .user-name { font-size: 14px; font-weight: 600; color: var(--text); }
 .logout-btn {

@@ -15,7 +15,7 @@ const { guildDataScript, guildHeaderHTML, tabNavHTML, TABS } = require('./guild'
 const { LOG_EVENTS, AUTOMOD_RULES, AUTOMOD_ACTIONS } = constants;
 
 // Wrap guild-tab body in the shared shell (header + tabs + data blob + page JS).
-function guildTab({ guild, active, panelHTML, scripts, title }) {
+function guildTab({ guild, active, panelHTML, scripts, title, user }) {
     const body = `
     ${guildHeaderHTML(guild)}
     ${tabNavHTML(guild.id, active)}
@@ -26,6 +26,7 @@ function guildTab({ guild, active, panelHTML, scripts, title }) {
         body,
         active: 'servers',
         scripts,
+        user,
     });
 }
 
@@ -113,9 +114,9 @@ function welcomePanelHTML(w, channels) {
     </div>`;
 }
 
-function welcomePage({ guild }) {
+function welcomePage({ guild, user }) {
     return guildTab({
-        guild, active: 'welcome',
+        guild, user, active: 'welcome',
         panelHTML: welcomePanelHTML(guild._config.welcome, guild._channels),
         scripts: ['/js/guild-common.js', '/js/settings-basic.js'],
     });
@@ -123,7 +124,7 @@ function welcomePage({ guild }) {
 
 // ── Leveling ────────────────────────────────────────────────────────────────
 
-function levelingPage({ guild }) {
+function levelingPage({ guild, user }) {
     const lev = guild._config.server?.leveling || {};
     const panelHTML = `
     <div class="card">
@@ -160,12 +161,12 @@ function levelingPage({ guild }) {
         <button class="btn btn-primary" data-save="leveling">Save leveling settings</button>
       </div>
     </div>`;
-    return guildTab({ guild, active: 'leveling', panelHTML, scripts: ['/js/guild-common.js', '/js/settings-basic.js'] });
+    return guildTab({ guild, user, active: 'leveling', panelHTML, scripts: ['/js/guild-common.js', '/js/settings-basic.js'] });
 }
 
 // ── Prefix ──────────────────────────────────────────────────────────────────
 
-function prefixPage({ guild }) {
+function prefixPage({ guild, user }) {
     const prefix = guild._config.server?.prefix || '$';
     const panelHTML = `
     <div class="card">
@@ -180,7 +181,7 @@ function prefixPage({ guild }) {
         <button class="btn btn-primary" data-save="prefix">Save prefix</button>
       </div>
     </div>`;
-    return guildTab({ guild, active: 'prefix', panelHTML, scripts: ['/js/guild-common.js', '/js/settings-basic.js'] });
+    return guildTab({ guild, user, active: 'prefix', panelHTML, scripts: ['/js/guild-common.js', '/js/settings-basic.js'] });
 }
 
 // ── Auto-reactions ──────────────────────────────────────────────────────────
@@ -194,7 +195,7 @@ function reactionRowHTML(r) {
     </div>`;
 }
 
-function reactionsPage({ guild }) {
+function reactionsPage({ guild, user }) {
     const ar = guild._config.server?.autoReactions || { enabled: false, reactions: [] };
     const rows = (ar.reactions || []).map(r => reactionRowHTML(r)).join('');
     const panelHTML = `
@@ -221,12 +222,12 @@ function reactionsPage({ guild }) {
         <button class="btn btn-primary" data-save="reactions">Save auto-reactions</button>
       </div>
     </div>`;
-    return guildTab({ guild, active: 'reactions', panelHTML, scripts: ['/js/guild-common.js', '/js/settings-basic.js'] });
+    return guildTab({ guild, user, active: 'reactions', panelHTML, scripts: ['/js/guild-common.js', '/js/settings-basic.js'] });
 }
 
 // ── Broadcasts ──────────────────────────────────────────────────────────────
 
-function broadcastPage({ guild }) {
+function broadcastPage({ guild, user }) {
     const server = guild._config.server;
     const panelHTML = `
     <div class="card">
@@ -251,7 +252,7 @@ function broadcastPage({ guild }) {
         <button class="btn btn-primary" data-save="broadcast">Save broadcast settings</button>
       </div>
     </div>`;
-    return guildTab({ guild, active: 'broadcast', panelHTML, scripts: ['/js/guild-common.js', '/js/settings-basic.js'] });
+    return guildTab({ guild, user, active: 'broadcast', panelHTML, scripts: ['/js/guild-common.js', '/js/settings-basic.js'] });
 }
 
 // ── Logging ─────────────────────────────────────────────────────────────────
@@ -330,9 +331,9 @@ function loggingPanelHTML(logging, channels) {
     </div>`;
 }
 
-function loggingPage({ guild }) {
+function loggingPage({ guild, user }) {
     return guildTab({
-        guild, active: 'logging',
+        guild, user, active: 'logging',
         panelHTML: loggingPanelHTML(guild._config.logging, guild._channels),
         scripts: ['/js/guild-common.js', '/js/settings-basic.js'],
     });
@@ -383,7 +384,7 @@ function rrMenuCardHTML(menu) {
     </div>`;
 }
 
-function reactionRolesPage({ guild }) {
+function reactionRolesPage({ guild, user }) {
     const menus = guild._config.reactionRoles || [];
     const listHTML = menus.length
         ? menus.map(rrMenuCardHTML).join('')
@@ -477,7 +478,7 @@ function reactionRolesPage({ guild }) {
         <button class="btn btn-primary" id="rr-create">Create reaction-role menu</button>
       </div>
     </div>`;
-    return guildTab({ guild, active: 'reactionroles', panelHTML, scripts: ['/js/guild-common.js', '/js/reactionroles.js'] });
+    return guildTab({ guild, user, active: 'reactionroles', panelHTML, scripts: ['/js/guild-common.js', '/js/reactionroles.js'] });
 }
 
 // ── Tickets ─────────────────────────────────────────────────────────────────
@@ -502,7 +503,7 @@ function ticketRoleRowHTML(selected = {}, prefix = 'tk-support') {
     </div>`;
 }
 
-function ticketsPage({ guild }) {
+function ticketsPage({ guild, user }) {
     const panels = guild._config.ticketPanels || [];
     const listHTML = panels.length
         ? '' // cards are rendered client-side after refresh; show a placeholder
@@ -647,12 +648,12 @@ function ticketsPage({ guild }) {
         <button class="btn btn-secondary" id="tk-cancel-edit" style="display:none">Cancel edit</button>
       </div>
     </div>`;
-    return guildTab({ guild, active: 'tickets', panelHTML, scripts: ['/js/guild-common.js', '/js/tickets.js'] });
+    return guildTab({ guild, user, active: 'tickets', panelHTML, scripts: ['/js/guild-common.js', '/js/tickets.js'] });
 }
 
 // ── Automod ─────────────────────────────────────────────────────────────────
 
-function automodPage({ guild }) {
+function automodPage({ guild, user }) {
     const s = guild._config.automod || {};
     const rules = Array.isArray(s.rules) ? s.rules : [];
     // Render existing rule rows server-side.
@@ -789,7 +790,7 @@ function automodPage({ guild }) {
 
 // ── Events ──────────────────────────────────────────────────────────────────
 
-function eventsPage({ guild }) {
+function eventsPage({ guild, user }) {
     const panelHTML = `
     <div class="card">
       <h2>📅 Event Management</h2>
@@ -812,7 +813,7 @@ function eventsPage({ guild }) {
       <div id="ev-list"><p class="live-empty">Loading…</p></div>
     </div>
     <div id="ev-modal" class="modal-overlay hidden"></div>`;
-    return guildTab({ guild, active: 'events', panelHTML, scripts: ['/js/guild-common.js', '/js/events.js'] });
+    return guildTab({ guild, user, active: 'events', panelHTML, scripts: ['/js/guild-common.js', '/js/events.js'] });
 }
 
 module.exports = {

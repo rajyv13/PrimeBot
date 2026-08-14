@@ -1150,19 +1150,20 @@ app.get(['/', '/dashboard'], requireAuth, async (req, res) => {
         res.type('html').send(pages.overviewPage({
             guilds,
             clientId: process.env.DISCORD_CLIENT_ID,
+            user: req.user,
         }));
     } catch (err) {
         console.error('[PAGE] overview error:', err.message);
-        res.type('html').send(pages.notFoundPage());
+        res.type('html').send(pages.notFoundPage({ user: req.session && req.session.user }));
     }
 });
 
-app.get('/docs', (req, res) => {
-    res.type('html').send(pages.docsPage({ clientId: process.env.DISCORD_CLIENT_ID }));
+app.get('/docs', requireAuth, (req, res) => {
+    res.type('html').send(pages.docsPage({ clientId: process.env.DISCORD_CLIENT_ID, user: req.user }));
 });
 
 app.get('/live', requireAuth, (req, res) => {
-    res.type('html').send(pages.livePage());
+    res.type('html').send(pages.livePage({ user: req.user }));
 });
 
 // Guild settings: each tab is its own page. requireGuildAdminPage fetches
@@ -1171,25 +1172,25 @@ app.get('/live', requireAuth, (req, res) => {
 app.get('/guild/:guildId', (req, res) => res.redirect(`/guild/${req.params.guildId}/welcome`));
 
 app.get('/guild/:guildId/welcome', requireAuth, requireGuildAdminPage, (req, res) =>
-    res.type('html').send(guildPages.welcomePage({ guild: req.guild })));
+    res.type('html').send(guildPages.welcomePage({ guild: req.guild, user: req.user })));
 app.get('/guild/:guildId/leveling', requireAuth, requireGuildAdminPage, (req, res) =>
-    res.type('html').send(guildPages.levelingPage({ guild: req.guild })));
+    res.type('html').send(guildPages.levelingPage({ guild: req.guild, user: req.user })));
 app.get('/guild/:guildId/prefix', requireAuth, requireGuildAdminPage, (req, res) =>
-    res.type('html').send(guildPages.prefixPage({ guild: req.guild })));
+    res.type('html').send(guildPages.prefixPage({ guild: req.guild, user: req.user })));
 app.get('/guild/:guildId/reactions', requireAuth, requireGuildAdminPage, (req, res) =>
-    res.type('html').send(guildPages.reactionsPage({ guild: req.guild })));
+    res.type('html').send(guildPages.reactionsPage({ guild: req.guild, user: req.user })));
 app.get('/guild/:guildId/reactionroles', requireAuth, requireGuildAdminPage, (req, res) =>
-    res.type('html').send(guildPages.reactionRolesPage({ guild: req.guild })));
+    res.type('html').send(guildPages.reactionRolesPage({ guild: req.guild, user: req.user })));
 app.get('/guild/:guildId/broadcast', requireAuth, requireGuildAdminPage, (req, res) =>
-    res.type('html').send(guildPages.broadcastPage({ guild: req.guild })));
+    res.type('html').send(guildPages.broadcastPage({ guild: req.guild, user: req.user })));
 app.get('/guild/:guildId/logging', requireAuth, requireGuildAdminPage, (req, res) =>
-    res.type('html').send(guildPages.loggingPage({ guild: req.guild })));
+    res.type('html').send(guildPages.loggingPage({ guild: req.guild, user: req.user })));
 app.get('/guild/:guildId/automod', requireAuth, requireGuildAdminPage, (req, res) =>
-    res.type('html').send(guildPages.automodPage({ guild: req.guild })));
+    res.type('html').send(guildPages.automodPage({ guild: req.guild, user: req.user })));
 app.get('/guild/:guildId/tickets', requireAuth, requireGuildAdminPage, (req, res) =>
-    res.type('html').send(guildPages.ticketsPage({ guild: req.guild })));
+    res.type('html').send(guildPages.ticketsPage({ guild: req.guild, user: req.user })));
 app.get('/guild/:guildId/events', requireAuth, requireGuildAdminPage, (req, res) =>
-    res.type('html').send(guildPages.eventsPage({ guild: req.guild })));
+    res.type('html').send(guildPages.eventsPage({ guild: req.guild, user: req.user })));
 
 // ── Health check ────────────────────────────────────────────────────────────
 
@@ -1200,7 +1201,7 @@ app.get('/health', (req, res) => {
 // ── 404 / error handlers ────────────────────────────────────────────────────
 
 app.use((req, res) => {
-    if (req.accepts('html')) return res.status(404).type('html').send(pages.notFoundPage());
+    if (req.accepts('html')) return res.status(404).type('html').send(pages.notFoundPage({ user: req.session && req.session.user }));
     res.status(404).json({ error: 'Not found' });
 });
 

@@ -1335,7 +1335,7 @@ async function getLivePolls() {
     try {
         const res = await pool.query(`
             SELECT p.poll_id, p.pass_code, p.question, p.is_active,
-                   p.created_at, p.expires_at,
+                   p.created_at, p.expires_at, p.channel_id,
                    (SELECT COUNT(*) FROM live_poll_votes v WHERE v.poll_id = p.poll_id) AS total_votes
             FROM live_polls p
             ORDER BY p.created_at DESC
@@ -1347,6 +1347,7 @@ async function getLivePolls() {
             isActive: r.is_active !== false,
             createdAt: r.created_at,
             expiresAt: r.expires_at,
+            channelId: r.channel_id,
             totalVotes: Number(r.total_votes) || 0,
         }));
     } catch (err) {
@@ -1360,7 +1361,7 @@ async function getLiveGiveaways() {
         const p = getLivePool();
         const res = await p.query(`
             SELECT g.giveaway_id, g.pass_code, g.prize, g.description, g.is_active,
-                   g.ended, g.created_at, g.ends_at,
+                   g.ended, g.created_at, g.ends_at, g.channel_id,
                    (SELECT COUNT(*) FROM live_giveaway_participants pt WHERE pt.giveaway_id = g.giveaway_id) AS entries
             FROM live_giveaways g
             ORDER BY g.created_at DESC
@@ -1374,6 +1375,7 @@ async function getLiveGiveaways() {
             ended: r.ended === true,
             createdAt: r.created_at,
             endsAt: r.ends_at,
+            channelId: r.channel_id,
             entries: Number(r.entries) || 0,
         }));
     } catch (err) {

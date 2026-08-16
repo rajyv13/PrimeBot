@@ -839,8 +839,48 @@ function eventsPage({ guild, user }) {
     return guildTab({ guild, user, active: 'events', panelHTML, scripts: ['/js/guild-common.js', '/js/events.js'] });
 }
 
+// ── Live Polls / Live Giveaways (per-server) ─────────────────────────────────
+//
+// Live polls & giveaways are inherently cross-server (joined via pass code from
+// any server), so these tabs show the items CREATED in this server, plus a link
+// to the global cross-server Live pages. The client (guild-live.js) fetches
+// /api/guilds/:guildId/live/polls|giveaways and reuses the live-card markup.
+
+function livePollsPage({ guild, user }) {
+    const panelHTML = `
+    <div class="card">
+      <div class="card-title"><span><span class="icon">📊</span> Live Polls</span></div>
+      <p class="card-desc">Live polls created in <strong>${esc(guild.name)}</strong> — running and recently ended. Live polls are cross-server: anyone can join with the pass code from any server where PrimeBot is present.</p>
+      <p class="card-hint">Create one in Discord with <code>$lpoll</code>. See <a href="/live/polls">all live polls across PrimeBot →</a></p>
+      <div id="live-content"><p class="live-empty">Loading live polls…</p></div>
+    </div>
+    <div id="live-join-modal" class="modal-overlay hidden"></div>`;
+    return guildTab({
+        guild, user, active: 'live/polls',
+        panelHTML,
+        scripts: ['/js/guild-common.js', '/js/guild-live.js'],
+    });
+}
+
+function liveGiveawaysPage({ guild, user }) {
+    const panelHTML = `
+    <div class="card">
+      <div class="card-title"><span><span class="icon">🎉</span> Live Giveaways</span></div>
+      <p class="card-desc">Live giveaways created in <strong>${esc(guild.name)}</strong> — running and recently ended. Live giveaways are cross-server: anyone can join with the pass code from any server where PrimeBot is present.</p>
+      <p class="card-hint">Create one in Discord with <code>$lgiveway</code>. See <a href="/live/giveaways">all live giveaways across PrimeBot →</a></p>
+      <div id="live-content"><p class="live-empty">Loading live giveaways…</p></div>
+    </div>
+    <div id="live-join-modal" class="modal-overlay hidden"></div>`;
+    return guildTab({
+        guild, user, active: 'live/giveaways',
+        panelHTML,
+        scripts: ['/js/guild-common.js', '/js/guild-live.js'],
+    });
+}
+
 module.exports = {
     welcomePage, levelingPage, prefixPage, reactionsPage, broadcastPage,
     loggingPage, reactionRolesPage, ticketsPage, automodPage, eventsPage,
+    livePollsPage, liveGiveawaysPage,
     TABS,
 };

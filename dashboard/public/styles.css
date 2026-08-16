@@ -236,6 +236,12 @@ a:hover { text-decoration: underline; }
   color: var(--text-dim);
   font-size: 13px;
 }
+.card-hint {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.card-hint code { background: rgba(0,0,0,0.06); padding: 1px 6px; border-radius: 6px; }
 
 /* ── Login screen ────────────────────────────────────────────────────────── */
 

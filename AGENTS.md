@@ -107,7 +107,14 @@ Cross-server giveaways — the giveaway counterpart to live polls (the existing 
 The dashboard has a dedicated **Live** page (top-nav link `/live`, route `renderLive` in `dashboard/public/app.js`) that shows two panels: **📊 Live Polls** and **🎉 Live Giveaways**. Each panel has a separate **🟢 Running** list and **🔴 Ended** list (ended only shows winners — for polls the winning option text(s); for giveaways the winner user ids). Each running card has a **Join** button that opens a floating window (modal) showing the exact command to run (`$lpoll join <key>` / `$lgiveway join <key>`) with a copy button. The dashboard cannot join on behalf of a Discord user (it needs a guild context + member), so it surfaces the command instead.
 
 - **API:** `GET /api/live` (guarded by `requireAuth`) returns `{ runningPolls, endedPolls, runningGiveaways, endedGiveaways }`. Live polls are read from the main `pool` (`live_polls` etc.); live giveaways are read from the `livePool`. All reads degrade to `[]` on a missing/unreachable DB.
-- **DB functions:** `getLivePolls` / `getEndedLivePolls` (main pool) and `getLiveGiveaways` / `getEndedLiveGiveaways` (live pool) in `dashboard/db.js`.
+- **DB functions:** `getLivePolls` / `getEndedLivePolls` (main pool) and `getLiveGiveaways` / `getEndedLiveGiveaways` (live pool) in `dashboard/db.js`. All four now also select `channel_id` (mapped to `channelId`) so the per-server views below can filter by guild.
+
+### Per-server Live tabs (server-features sidebar)
+
+Live polls/giveaways are cross-server (joined via pass code from any server), so the global `/live/polls` + `/live/giveaways` pages show everything across PrimeBot. The per-server **Server features** sidebar (`render/guild.js` `TABS`) now also has **📊 Live Polls** (`/guild/:guildId/live/polls`) and **🎉 Live Giveaways** (`/guild/:guildId/live/giveaways`) entries that show only the items **created in this server** — filtered by matching the row's `channel_id` against the guild's channel set (`discord.getGuildChannels`). Each per-server page links out to the global cross-server Live page.
+
+- **API:** `GET /api/guilds/:guildId/live/polls` and `GET /api/guilds/:guildId/live/giveaways` (guarded by `requireAuth` + `requireGuildAdmin`) return `{ running, ended }` filtered to this guild's channels.
+- **Client:** `dashboard/public/js/guild-live.js` serves both tabs (kind derived from the page URL) and reuses the live-card + join-modal markup from the global `live.js`.
 
 ## Leveling role rewards (DB-backed)
 

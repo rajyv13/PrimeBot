@@ -1095,6 +1095,48 @@ app.get('/api/live/giveaways', requireAuth, async (req, res) => {
     }
 });
 
+// Per-guild live views for the server-features sidebar. Live polls/giveaways
+// are cross-server (joined via pass code from any server), but each row records
+// the channel it was created in. We filter to items created in THIS server's
+// channels so the per-server tab shows "live activity in this server".
+app.get('/api/guilds/:guildId/live/polls', requireAuth, requireGuildAdmin, async (req, res) => {
+    try {
+        const channels = await discord.getGuildChannels(req.guild.id).catch(() => []);
+        const ids = new Set((channels || []).map(c => String(c.id)));
+        const [polls, endedPolls] = await Promise.all([
+            dashboardDb.getLivePolls(),
+            dashboardDb.getEndedLivePolls(),
+        ]);
+        const inGuild = p => p.channelId && ids.has(String(p.channelId));
+        res.json({
+            running: polls.filter(p => p.isActive).filter(inGuild),
+            ended: endedPolls.filter(inGuild),
+        });
+    } catch (err) {
+        console.error('[API] /api/guilds/:guildId/live/polls error:', err.message);
+        res.status(500).json({ error: 'Failed to load live polls.' });
+    }
+});
+
+app.get('/api/guilds/:guildId/live/giveaways', requireAuth, requireGuildAdmin, async (req, res) => {
+    try {
+        const channels = await discord.getGuildChannels(req.guild.id).catch(() => []);
+        const ids = new Set((channels || []).map(c => String(c.id)));
+        const [giveaways, endedGiveaways] = await Promise.all([
+            dashboardDb.getLiveGiveaways(),
+            dashboardDb.getEndedLiveGiveaways(),
+        ]);
+        const inGuild = g => g.channelId && ids.has(String(g.channelId));
+        res.json({
+            running: giveaways.filter(g => g.isActive && !g.ended).filter(inGuild),
+            ended: endedGiveaways.filter(inGuild),
+        });
+    } catch (err) {
+        console.error('[API] /api/guilds/:guildId/live/giveaways error:', err.message);
+        res.status(500).json({ error: 'Failed to load live giveaways.' });
+    }
+});
+
 // ── API: Event management (📅 Events tab) ────────────────────────────────────
 
 app.get('/api/guilds/:guildId/events', requireAuth, requireGuildAdmin, async (req, res) => {
@@ -1293,6 +1335,10 @@ app.get('/guild/:guildId/tickets', requireAuth, requireGuildAdminPage, (req, res
     res.type('html').send(guildPages.ticketsPage({ guild: req.guild, user: req.user })));
 app.get('/guild/:guildId/events', requireAuth, requireGuildAdminPage, (req, res) =>
     res.type('html').send(guildPages.eventsPage({ guild: req.guild, user: req.user })));
+app.get('/guild/:guildId/live/polls', requireAuth, requireGuildAdminPage, (req, res) =>
+    res.type('html').send(guildPages.livePollsPage({ guild: req.guild, user: req.user })));
+app.get('/guild/:guildId/live/giveaways', requireAuth, requireGuildAdminPage, (req, res) =>
+    res.type('html').send(guildPages.liveGiveawaysPage({ guild: req.guild, user: req.user })));
 
 // ── Health check ────────────────────────────────────────────────────────────
 

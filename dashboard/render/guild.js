@@ -22,6 +22,8 @@ const TABS = [
   { key: 'logging',        label: '📜 Logging' },
   { key: 'automod',        label: '🛡️ Automod' },
   { key: 'tickets',        label: '🎫 Tickets' },
+  { key: 'live/polls',     label: '📊 Live Polls' },
+  { key: 'live/giveaways', label: '🎉 Live Giveaways' },
   { key: 'events',         label: '📅 Events', beta: true },
 ];
 
